@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FRIDAY · Kronos Forecast Terminal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=JetBrains+Mono:wght@400;500;700&family=Archivo:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0d0c0a;--panel:#161410;--panel-2:#1d1a15;--line:#2b2720;
+    --ink:#ece6d8;--ink-dim:#9a9384;--ink-faint:#6a6457;
+    --accent:#e8a13a;--up:#54c08a;--down:#e06a5a;--band:rgba(232,161,58,.10);
+    --mono:'JetBrains Mono',ui-monospace,monospace;--disp:'Fraunces',Georgia,serif;--body:'Archivo',system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:radial-gradient(1200px 600px at 80% -10%,rgba(232,161,58,.06),transparent 60%),var(--bg);
+    color:var(--ink);font-family:var(--body);line-height:1.45;min-height:100vh;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1100px;margin:0 auto;padding:0 22px 70px}
+  header{display:flex;align-items:center;gap:18px;padding:22px 0 18px;border-bottom:1px solid var(--line);
+    position:sticky;top:0;z-index:20;background:linear-gradient(var(--bg),rgba(13,12,10,.86));backdrop-filter:blur(8px)}
+  .logo{font-family:var(--disp);font-weight:600;font-size:26px;letter-spacing:.5px;line-height:1}
+  .logo b{color:var(--accent)}
+  .logo span{display:block;font-family:var(--mono);font-size:10px;letter-spacing:2.5px;color:var(--ink-faint);font-weight:400;text-transform:uppercase;margin-top:4px}
+  .spacer{flex:1}
+  .tabs{display:flex;gap:4px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:4px}
+  .tab{font-family:var(--mono);font-size:12px;color:var(--ink-dim);background:none;border:none;cursor:pointer;padding:7px 14px;border-radius:7px;transition:.18s}
+  .tab:hover{color:var(--ink)}
+  .tab.active{background:var(--panel-2);color:var(--accent)}
+  .pill{font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;border:1px solid rgba(232,161,58,.4);color:var(--accent);padding:5px 9px;border-radius:100px}
+  .crumb{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:12px;color:var(--ink-faint);padding:18px 0 4px;flex-wrap:wrap}
+  .crumb button{font-family:var(--mono);font-size:12px;background:none;border:none;color:var(--ink-dim);cursor:pointer;padding:0;transition:.15s}
+  .crumb button:hover{color:var(--accent)}
+  .crumb .here{color:var(--ink)}.crumb .sep{opacity:.6}
+  .hero{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:24px;margin-top:14px;position:relative;overflow:hidden}
+  .hero-top{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;flex-wrap:wrap}
+  .hero h1{font-family:var(--disp);font-weight:500;font-size:32px;line-height:1.05}
+  .hero .sub{font-family:var(--mono);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink-faint);margin-top:6px}
+  .lastpx{font-family:var(--mono);font-size:14px;color:var(--ink-dim);margin-top:10px}
+  .stats{display:flex;gap:26px;flex-wrap:wrap}
+  .stat .k{font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink-faint)}
+  .stat .v{font-family:var(--mono);font-size:24px;font-weight:700;margin-top:4px}
+  .up{color:var(--up)}.down{color:var(--down)}
+  .chartbox{margin-top:22px;border-top:1px solid var(--line);padding-top:18px}
+  .chartbox svg{width:100%;height:auto;display:block}
+  .legend{display:flex;gap:18px;margin-top:12px;font-family:var(--mono);font-size:10.5px;color:var(--ink-dim);flex-wrap:wrap}
+  .legend i{display:inline-block;width:16px;height:3px;border-radius:2px;vertical-align:middle;margin-right:6px}
+  .legend .dash{height:0;border-top:2px dashed var(--accent);width:18px}
+  .legend .bandkey{height:9px;background:var(--band);border:1px solid rgba(232,161,58,.3);border-radius:2px}
+  .sectitle{display:flex;align-items:baseline;gap:12px;margin:30px 2px 14px}
+  .sectitle h2{font-family:var(--disp);font-weight:500;font-size:19px}
+  .sectitle .hint{font-family:var(--mono);font-size:10.5px;color:var(--ink-faint)}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(228px,1fr));gap:12px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:15px 15px 12px;cursor:pointer;transition:.18s;position:relative}
+  .card:hover{border-color:rgba(232,161,58,.45);transform:translateY(-2px);background:var(--panel-2)}
+  .card .cn{font-weight:600;font-size:14.5px}
+  .card .cc{font-family:var(--mono);font-size:10px;letter-spacing:1px;color:var(--ink-faint);text-transform:uppercase;margin-top:2px}
+  .card .crow{display:flex;justify-content:space-between;align-items:flex-end;margin-top:10px}
+  .card .cpx{font-family:var(--mono);font-size:13px;color:var(--ink-dim)}
+  .card .cfc{font-family:var(--mono);font-size:17px;font-weight:700}
+  .card .clab{font-family:var(--mono);font-size:9px;letter-spacing:1px;color:var(--ink-faint);text-transform:uppercase;text-align:right}
+  .card svg{width:100%;height:38px;display:block;margin-top:8px}
+  .card .drillicon{position:absolute;top:14px;right:14px;color:var(--ink-faint);transition:.18s}
+  .card:hover .drillicon{color:var(--accent)}
+  /* compact fundamentals strip */
+  .fund{grid-column:1/-1;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px}
+  .fund-h{font-family:var(--disp);font-size:16px;font-weight:500;margin-bottom:14px}
+  .fund-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  .fcell{background:var(--panel);padding:12px 13px}
+  .fk{font-family:var(--mono);font-size:9.5px;letter-spacing:.8px;text-transform:uppercase;color:var(--ink-faint)}
+  .fv{font-family:var(--mono);font-size:15px;font-weight:500;margin-top:4px}
+  .fv.up{color:var(--up)}.fv.down{color:var(--down)}
+  .fund-foot{font-family:var(--mono);font-size:10px;color:var(--ink-faint);line-height:1.55;margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
+  /* screener */
+  .filters{display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end;background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:16px 18px;margin-top:14px}
+  .fld{display:flex;flex-direction:column;gap:6px}
+  .fld label{font-family:var(--mono);font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:var(--ink-faint)}
+  .fld select{font-family:var(--mono);font-size:13px;background:var(--panel-2);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px 10px;min-width:140px}
+  table{width:100%;border-collapse:collapse;margin-top:14px;background:var(--panel);border:1px solid var(--line);border-radius:13px;overflow:hidden}
+  th{font-family:var(--mono);font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:var(--ink-faint);text-align:right;padding:13px 14px;border-bottom:1px solid var(--line);cursor:pointer;user-select:none;white-space:nowrap}
+  th:first-child,td:first-child{text-align:left}
+  th:hover{color:var(--accent)}.arr{color:var(--accent)}
+  td{font-family:var(--mono);font-size:13px;padding:12px 14px;border-bottom:1px solid var(--line);text-align:right;color:var(--ink-dim)}
+  tr:last-child td{border-bottom:none}
+  tbody tr{cursor:pointer;transition:.13s}
+  tbody tr:hover{background:var(--panel-2)}
+  td .nm{color:var(--ink);font-weight:500}
+  td .sub{color:var(--ink-faint);font-size:10px}
+  .tag{font-family:var(--mono);font-size:10px;padding:3px 7px;border-radius:5px}
+  .tag.up{background:rgba(84,192,138,.13);color:var(--up)}
+  .tag.down{background:rgba(224,106,90,.13);color:var(--down)}
+  .note{font-family:var(--mono);font-size:11px;color:var(--ink-faint);line-height:1.6;border:1px dashed var(--line);border-radius:10px;padding:14px 16px;margin-top:28px}
+  .note b{color:var(--ink-dim)}
+  footer{font-family:var(--mono);font-size:10.5px;color:var(--ink-faint);text-align:center;margin-top:30px;line-height:1.7}
+  .hidden{display:none!important}
+  @media(max-width:560px){
+    .hero h1{font-size:25px}.stat .v{font-size:20px}
+    th,td{padding:10px 9px;font-size:11.5px}
+    .spacer{display:none}header{flex-wrap:wrap}
+    .fund-grid{grid-template-columns:1fr 1fr}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo">F<b>R</b>IDAY<span>Kronos Forecast Terminal</span></div>
+    <div class="spacer"></div>
+    <div class="tabs">
+      <button class="tab active" id="tab-drill" onclick="setView('drill')">Drill-through</button>
+      <button class="tab" id="tab-screen" onclick="setView('screener')">Screener</button>
+    </div>
+    <div class="pill">Demo data</div>
+  </header>
+
+  <div id="drill-view">
+    <nav class="crumb" id="crumb"></nav>
+    <div class="hero" id="hero"></div>
+    <div class="sectitle" id="sectitle"></div>
+    <div class="grid" id="grid"></div>
+  </div>
+
+  <div id="screener-view" class="hidden">
+    <div class="sectitle"><h2>Screener</h2><span class="hint">every stock ranked by its 5-day forecast — a watchlist, not a buy list</span></div>
+    <div class="filters">
+      <div class="fld"><label>Direction</label>
+        <select id="f-dir" onchange="renderScreener()">
+          <option value="all">All</option><option value="up">Forecast up</option><option value="down">Forecast down</option>
+        </select></div>
+      <div class="fld"><label>Index</label><select id="f-idx" onchange="renderScreener()"></select></div>
+    </div>
+    <table id="screen-table"></table>
+  </div>
+
+  <div class="note"><b>Mockup with synthetic data.</b> Kronos isn't wired in — in the real build a nightly job runs Kronos per instrument and writes the forecast + cone to your DB, and this page just reads it. Each forecast is independent, so market, index and stock paths can disagree. The shaded cone is the forecast spread — wider means less certain.</div>
+  <footer>Synthetic illustrative data · forecasts shown as cones, not single predictions · not investment advice</footer>
+</div>
+
+<script>
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function hash(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return h>>>0;}
+
+const UNIVERSE={code:"NIFTY 50",name:"Broad Market",base:24850,children:[
+  {code:"BANKNIFTY",name:"Nifty Bank",base:53120,stocks:[["HDFCBANK","HDFC Bank",1685],["ICICIBANK","ICICI Bank",1248],["SBIN","State Bank",842],["AXISBANK","Axis Bank",1156],["KOTAKBANK","Kotak Mahindra",1792],["INDUSINDBK","IndusInd",975]]},
+  {code:"NIFTYIT",name:"Nifty IT",base:42380,stocks:[["TCS","Tata Consultancy",4120],["INFY","Infosys",1876],["HCLTECH","HCL Tech",1654],["WIPRO","Wipro",298],["TECHM","Tech Mahindra",1685],["LTIM","LTIMindtree",6240]]},
+  {code:"NIFTYAUTO",name:"Nifty Auto",base:26740,stocks:[["MARUTI","Maruti Suzuki",12480],["TATAMOTORS","Tata Motors",986],["M&M","Mahindra",2945],["BAJAJ-AUTO","Bajaj Auto",9320],["EICHERMOT","Eicher Motors",4815],["HEROMOTOCO","Hero MotoCorp",4690]]},
+  {code:"NIFTYFMCG",name:"Nifty FMCG",base:58210,stocks:[["HINDUNILVR","HUL",2480],["ITC","ITC",458],["NESTLEIND","Nestle India",2310],["BRITANNIA","Britannia",5240],["TATACONSUM","Tata Consumer",1085],["DABUR","Dabur",512]]},
+  {code:"NIFTYPHARMA",name:"Nifty Pharma",base:22980,stocks:[["SUNPHARMA","Sun Pharma",1742],["CIPLA","Cipla",1538],["DRREDDY","Dr Reddy's",1295],["DIVISLAB","Divi's Labs",5980],["AUROPHARMA","Aurobindo",1248]]},
+  {code:"NIFTYENERGY",name:"Nifty Energy",base:38560,stocks:[["RELIANCE","Reliance",2945],["NTPC","NTPC",362],["POWERGRID","Power Grid",318],["ONGC","ONGC",248],["BPCL","BPCL",312]]},
+]};
+
+const HIST=60,FC=5;
+function series(code,base){
+  const r=mulberry32(hash(code));
+  const drift=(r()-0.5)*0.0016,vol=0.006+r()*0.014;
+  let px=base*(0.93+r()*0.08);const hist=[];
+  for(let i=0;i<HIST;i++){px=px*(1+drift+(r()-0.5)*vol*2);hist.push(px);}
+  const last=hist[hist.length-1];const fdrift=drift*1.1+(r()-0.5)*0.004;
+  const med=[],up=[],lo=[];let m=last;
+  for(let i=1;i<=FC;i++){m=m*(1+fdrift+(r()-0.5)*vol*0.4);const sp=last*vol*Math.sqrt(i)*1.9;med.push(m);up.push(m+sp);lo.push(m-sp);}
+  return {hist,med,up,lo,last,ret:(med[FC-1]/last-1)*100};
+}
+function fundamentals(code,last){
+  const r=mulberry32(hash(code+'_f'));
+  return {mcapCr:Math.round(last*(40+r()*900)),pe:8+r()*42,roe:4+r()*30,de:r()*1.8,
+    salesG:-6+r()*34,hi:last*(1.05+r()*0.35),lo:last*(0.6+r()*0.25)};
+}
+function chart(s,W,H,big){
+  const all=[...s.hist,...s.up,...s.lo];let mn=Math.min(...all),mx=Math.max(...all);const pd=(mx-mn)*0.08;mn-=pd;mx+=pd;
+  const N=HIST+FC,padL=big?6:0,padR=big?6:0,padT=6,padB=6;
+  const x=i=>padL+(i/(N-1))*(W-padL-padR),y=v=>padT+(1-(v-mn)/(mx-mn))*(H-padT-padB);
+  const up=s.ret>=0;
+  const histLine=s.hist.map((v,i)=>`${i?'L':'M'}${x(i).toFixed(1)} ${y(v).toFixed(1)}`).join(' ');
+  const upPts=s.up.map((v,i)=>`${x(HIST+i).toFixed(1)} ${y(v).toFixed(1)}`);
+  const loPts=s.lo.map((v,i)=>`${x(HIST+i).toFixed(1)} ${y(v).toFixed(1)}`).reverse();
+  const join=x(HIST-1).toFixed(1)+' '+y(s.hist[HIST-1]).toFixed(1);
+  const band=`M${join} L${upPts.join(' L')} L${loPts.join(' L')} Z`;
+  const medLine=`M${join} `+s.med.map((v,i)=>`L${x(HIST+i).toFixed(1)} ${y(v).toFixed(1)}`).join(' ');
+  const div=x(HIST-1),col=up?'var(--up)':'var(--down)';
+  return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
+    ${big?`<line x1="${div}" y1="${padT}" x2="${div}" y2="${H-padB}" stroke="var(--line)" stroke-dasharray="2 3"/>`:''}
+    <path d="${band}" fill="var(--band)"/>
+    <path d="${histLine}" fill="none" stroke="${col}" stroke-width="${big?2:1.6}" stroke-linejoin="round" stroke-linecap="round"/>
+    <path d="${medLine}" fill="none" stroke="var(--accent)" stroke-width="${big?2:1.6}" stroke-dasharray="${big?'5 4':'3 3'}" stroke-linecap="round"/></svg>`;
+}
+
+let state={view:'drill',level:'market',idx:null,stock:null};
+function setView(v){
+  state.view=v;
+  document.getElementById('tab-drill').classList.toggle('active',v==='drill');
+  document.getElementById('tab-screen').classList.toggle('active',v==='screener');
+  document.getElementById('drill-view').classList.toggle('hidden',v!=='drill');
+  document.getElementById('screener-view').classList.toggle('hidden',v!=='screener');
+  if(v==='screener')renderScreener();else renderDrill();
+}
+function goMarket(){state.level='market';state.idx=null;renderDrill();}
+function goIndex(i){state.level='index';state.idx=i;renderDrill();}
+function goStock(i,s){state.level='stock';state.idx=i;state.stock=s;renderDrill();}
+function fmt(n){return n.toLocaleString('en-IN',{maximumFractionDigits:n>500?0:2});}
+function signed(n){return (n>=0?'+':'')+n.toFixed(2)+'%';}
+
+function renderDrill(){
+  const crumb=document.getElementById('crumb'),hero=document.getElementById('hero'),st=document.getElementById('sectitle'),grid=document.getElementById('grid');
+  grid.innerHTML='';st.innerHTML='';
+  let focus,children=[],childKind='';
+  if(state.level==='market'){
+    focus={code:UNIVERSE.code,name:UNIVERSE.name,s:series(UNIVERSE.code,UNIVERSE.base)};
+    children=UNIVERSE.children;childKind='index';
+    crumb.innerHTML=`<span class="here">Market · NIFTY 50</span>`;
+  }else if(state.level==='index'){
+    const ix=UNIVERSE.children[state.idx];
+    focus={code:ix.code,name:ix.name,s:series(ix.code,ix.base)};
+    children=ix.stocks;childKind='stock';
+    crumb.innerHTML=`<button onclick="goMarket()">Market</button><span class="sep">›</span><span class="here">${ix.code}</span>`;
+  }else{
+    const ix=UNIVERSE.children[state.idx],stk=ix.stocks[state.stock];
+    focus={code:stk[0],name:stk[1],s:series(stk[0],stk[2])};
+    crumb.innerHTML=`<button onclick="goMarket()">Market</button><span class="sep">›</span><button onclick="goIndex(${state.idx})">${ix.code}</button><span class="sep">›</span><span class="here">${stk[0]}</span>`;
+  }
+  const s=focus.s,up=s.ret>=0;
+  hero.innerHTML=`<div class="hero-top">
+      <div><h1>${focus.code}</h1><div class="sub">${focus.name} · ${state.level} level</div>
+        <div class="lastpx">Last ${fmt(s.last)} · ${HIST}d history → ${FC}d forecast</div></div>
+      <div class="stats">
+        <div class="stat"><div class="k">Forecast ${FC}d</div><div class="v ${up?'up':'down'}">${signed(s.ret)}</div></div>
+        <div class="stat"><div class="k">Target</div><div class="v">${fmt(s.med[FC-1])}</div></div></div></div>
+    <div class="chartbox">${chart(s,900,250,true)}
+      <div class="legend"><span><i style="background:${up?'var(--up)':'var(--down)'}"></i>History</span>
+        <span><i class="dash"></i>Forecast</span><span><i class="bandkey"></i>Uncertainty cone</span></div></div>`;
+
+  if(state.level==='stock'){
+    const f=fundamentals(focus.code,s.last);
+    st.innerHTML=`<h2>Fundamentals</h2><span class="hint">snapshot alongside the 5-day forecast</span>`;
+    const cells=[
+      ['Market Cap','₹'+f.mcapCr.toLocaleString('en-IN')+' Cr',''],
+      ['P/E',f.pe.toFixed(1),f.pe>40?'down':(f.pe<15?'up':'')],
+      ['ROE',f.roe.toFixed(1)+'%',f.roe>18?'up':(f.roe<10?'down':'')],
+      ['Debt / Equity',f.de.toFixed(2),f.de>1.1?'down':(f.de<0.4?'up':'')],
+      ['Sales gr. YoY',signed(f.salesG),f.salesG>=0?'up':'down'],
+      ['52w range',fmt(f.lo)+' – '+fmt(f.hi),''],
+    ];
+    grid.innerHTML=`<div class="fund">
+      <div class="fund-h">Key fundamentals</div>
+      <div class="fund-grid">${cells.map(([k,v,c])=>`<div class="fcell"><div class="fk">${k}</div><div class="fv ${c}">${v}</div></div>`).join('')}</div>
+      <div class="fund-foot">Synthetic snapshot — in the live build these come from a fundamentals data source, refreshed on a quarterly cadence.</div></div>`;
+    return;
+  }
+  st.innerHTML=state.level==='market'
+    ? `<h2>Sector indices</h2><span class="hint">tap to drill in</span>`
+    : `<h2>Constituents · ${UNIVERSE.children[state.idx].code}</h2><span class="hint">tap a stock</span>`;
+  children.forEach((c,i)=>{
+    let code,nm,base,onclick;
+    if(childKind==='index'){code=c.code;nm=c.name;base=c.base;onclick=`goIndex(${i})`;}
+    else{code=c[0];nm=c[1];base=c[2];onclick=`goStock(${state.idx},${i})`;}
+    const cs=series(code,base),up=cs.ret>=0;
+    const card=document.createElement('div');card.className='card';card.setAttribute('onclick',onclick);
+    card.innerHTML=`<span class="drillicon">→</span><div class="cn">${code}</div><div class="cc">${nm}</div>
+      ${chart(cs,220,38,false)}
+      <div class="crow"><div class="cpx">${fmt(cs.last)}</div>
+        <div><div class="cfc ${up?'up':'down'}">${signed(cs.ret)}</div><div class="clab">${FC}d forecast</div></div></div>`;
+    grid.appendChild(card);
+  });
+}
+
+let sortDir=-1;
+function setSort(){sortDir*=-1;renderScreener();}
+function renderScreener(){
+  const fidx=document.getElementById('f-idx');
+  if(!fidx.options.length)fidx.innerHTML=`<option value="all">All indices</option>`+UNIVERSE.children.map(c=>`<option value="${c.code}">${c.code}</option>`).join('');
+  const dir=document.getElementById('f-dir').value,idxf=fidx.value;
+  let rows=[];
+  UNIVERSE.children.forEach((ix,ii)=>ix.stocks.forEach((stk,si)=>{
+    const s=series(stk[0],stk[2]);rows.push({code:stk[0],name:stk[1],idx:ix.code,ii,si,last:s.last,ret:s.ret});
+  }));
+  rows=rows.filter(r=>{
+    if(dir==='up'&&r.ret<0)return false;
+    if(dir==='down'&&r.ret>=0)return false;
+    if(idxf!=='all'&&r.idx!==idxf)return false;
+    return true;
+  }).sort((a,b)=>(a.ret-b.ret)*sortDir);
+  let html=`<thead><tr><th>Symbol</th><th>Index</th><th>Last</th>
+    <th onclick="setSort()">Fcst 5d <span class="arr">${sortDir<0?'▼':'▲'}</span></th><th>Signal</th></tr></thead><tbody>`;
+  if(!rows.length)html+=`<tr><td colspan="5" style="text-align:center;padding:36px;color:var(--ink-faint)">No matches.</td></tr>`;
+  rows.forEach(r=>{const up=r.ret>=0;
+    html+=`<tr onclick="setView('drill');goStock(${r.ii},${r.si})">
+      <td><span class="nm">${r.code}</span><br><span class="sub">${r.name}</span></td>
+      <td>${r.idx}</td><td>${fmt(r.last)}</td>
+      <td class="${up?'up':'down'}">${signed(r.ret)}</td>
+      <td><span class="tag ${up?'up':'down'}">${up?'WATCH ↑':'AVOID ↓'}</span></td></tr>`;});
+  html+=`</tbody>`;
+  document.getElementById('screen-table').innerHTML=html;
+}
+renderDrill();
+</script>
+</body>
+</html>
