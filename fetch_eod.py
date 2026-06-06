@@ -36,7 +36,7 @@ def get_universe_from_db(conn):
     cursor.execute("SELECT code, name FROM instruments WHERE level = 'market'")
     market = cursor.fetchone()
     if not market:
-        return fetch_all_constituents_from_nse()
+        return None
 
     universe = {"code": market[0], "name": market[1], "children": []}
 
@@ -60,6 +60,7 @@ def get_universe_from_db(conn):
 def init_holidays(conn):
     # Expanded list of known NSE holidays for 2024-2026
     holidays = [
+        # 2024
         ("2024-01-22", "Special Holiday"),
         ("2024-01-26", "Republic Day"),
         ("2024-03-08", "Mahashivratri"),
@@ -76,7 +77,36 @@ def init_holidays(conn):
         ("2024-11-01", "Diwali-Laxmi Pujan"),
         ("2024-11-15", "Gurunanak Jayanti"),
         ("2024-11-20", "Assembly Elections"),
-        ("2024-12-25", "Christmas")
+        ("2024-12-25", "Christmas"),
+        # 2025
+        ("2025-02-26", "Mahashivratri"),
+        ("2025-03-14", "Holi"),
+        ("2025-03-31", "Id-Ul-Fitr (Ramadan Eid)"),
+        ("2025-04-10", "Shri Ram Navmi"),
+        ("2025-04-14", "Dr. Baba Saheb Ambedkar Jayanti"),
+        ("2025-04-18", "Good Friday"),
+        ("2025-05-01", "Maharashtra Day"),
+        ("2025-08-15", "Independence Day"),
+        ("2025-08-27", "Ganesh Chaturthi"),
+        ("2025-10-02", "Mahatma Gandhi Jayanti"),
+        ("2025-10-21", "Diwali-Laxmi Pujan"),
+        ("2025-11-05", "Gurunanak Jayanti"),
+        ("2025-12-25", "Christmas"),
+        # 2026
+        ("2026-01-26", "Republic Day"),
+        ("2026-02-15", "Mahashivratri"),
+        ("2026-03-04", "Holi"),
+        ("2026-03-20", "Id-Ul-Fitr (Ramadan Eid)"),
+        ("2026-03-29", "Shri Ram Navmi"),
+        ("2026-04-03", "Good Friday"),
+        ("2026-04-14", "Dr. Baba Saheb Ambedkar Jayanti"),
+        ("2026-05-01", "Maharashtra Day"),
+        ("2026-08-15", "Independence Day"),
+        ("2026-09-15", "Ganesh Chaturthi"),
+        ("2026-10-02", "Mahatma Gandhi Jayanti"),
+        ("2026-11-10", "Diwali-Laxmi Pujan"),
+        ("2026-11-24", "Gurunanak Jayanti"),
+        ("2026-12-25", "Christmas")
     ]
     cursor = conn.cursor()
     cursor.executemany("INSERT OR IGNORE INTO holidays (date, description) VALUES (?, ?)", holidays)
@@ -270,6 +300,10 @@ def run_fetcher(db_path=None, start_date=None, end_date=None):
     if nse_universe is None:
         print("Failed to fetch Nifty 50 from NSE. Using DB fallback.")
         nse_universe = get_universe_from_db(conn)
+        if nse_universe is None:
+            print("CRITICAL: DB is empty and NSE fetch failed. Cannot continue.")
+            conn.close()
+            return
     else:
         init_instruments(conn, nse_universe)
         init_index_membership(conn, nse_universe)

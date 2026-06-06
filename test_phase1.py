@@ -139,6 +139,7 @@ def test_universe_coverage(db_conn):
 
     from fetch_eod import get_universe_from_db
     UNIVERSE = get_universe_from_db(conn)
+    assert UNIVERSE is not None, 'Universe failed to load from DB'
     import requests, csv, io
     headers = {'User-Agent': 'Mozilla/5.0'}
     r = requests.get('https://www.niftyindices.com/IndexConstituent/ind_nifty50list.csv', headers=headers)
@@ -168,6 +169,7 @@ def test_symbol_resolvability(db_conn):
     init_instruments(conn, nse_universe)
     init_index_membership(conn, nse_universe)
     UNIVERSE = get_universe_from_db(conn)
+    assert UNIVERSE is not None, 'Universe failed to load from DB'
     from fetch_eod import fetch_data_for_symbol, INDEX_MAP
     from datetime import datetime, timedelta
 
